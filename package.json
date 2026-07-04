@@ -1,0 +1,24 @@
+{
+  "name": "google-ai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "multer": "^2.2.0",
+    "node-cron": "^4.5.0",
+    "nodemailer": "^9.0.3",
+    "pdf-parse": "^1.1.1",
+    "playwright": "^1.61.1"
+  }
+}

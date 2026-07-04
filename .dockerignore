@@ -1,0 +1,11 @@
+node_modules
+public/screenshots/*
+history.json
+saved_cv.json
+config.json
+.git
+.env
+*.log
+*.png
+ddg_response.html
+test_search.js

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoResume Auto-Apply - סוכן הגשת מועמדות אוטומטית</title>
+    <meta name="description" content="סוכן חכם מבוססת בינה מלאכותית לחיפוש, סינון והגשה אוטומטית של קורות חיים בזמן שאתה ישן.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;800&family=Rubik:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-user-astronaut brand-icon"></i>
+                <span class="brand-text">AutoApply AI</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-item active" id="nav-dashboard-link">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>סוכן בקרה</span>
+                </a>
+                <a href="#cv-upload" class="nav-item" id="nav-cv-link">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>העלאת קו"ח</span>
+                </a>
+                <a href="#agent-config" class="nav-item" id="nav-agent-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>הגדרות סוכן (Auto-Pilot)</span>
+                </a>
+                <a href="#smtp-config" class="nav-item" id="nav-smtp-link">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>פרטי שליחה & SMTP</span>
+                </a>
+                <a href="#history" class="nav-item" id="nav-history-link">
+                    <i class="fa-solid fa-history"></i>
+                    <span>היסטוריית הגשות</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <span class="version">V2.0.0 Sleep-Mode</span>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-title">
+                    <h1 id="page-title">סוכן בקרה</h1>
+                </div>
+                <div class="system-status">
+                    <span class="status-indicator offline" id="agent-indicator"></span>
+                    <span class="status-text" id="agent-status-text">הסוכן כבוי</span>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view-section active-view">
+                <!-- Stats Summary -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><i class="fa-solid fa-file-arrow-up"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">קו"ח במערכת</span>
+                            <h2 class="stat-value" id="stat-cv-status">לא הועלה</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="fa-solid fa-magnifying-glass"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">משרות שנסרקו</span>
+                            <h2 class="stat-value" id="stat-scanned-count">0</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">הגשות מוצלחות</span>
+                            <h2 class="stat-value" id="stat-applied-count">0</h2>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red"><i class="fa-solid fa-forward-fast"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">דולגו (חוסר התאמה)</span>
+                            <h2 class="stat-value" id="stat-skipped-count">0</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Controller & Log Area -->
+                <div class="dashboard-grid">
+                    <div class="control-panel-card">
+                        <h3>מצב פעולה (Auto-Pilot)</h3>
+                        <p class="panel-desc">הפעל את הסוכן והוא ימשיך לסרוק ולהגיש מועמדות ברשת באופן מחזורי לפי ההגדרות שלך.</p>
+                        
+                        <div class="agent-overview-box">
+                            <div class="info-row">
+                                <span class="info-label">מילות מפתח פעילות:</span>
+                                <span class="info-val" id="overview-keywords">טוען...</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">מיקום סריקה:</span>
+                                <span class="info-val" id="overview-location">טוען...</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">סף התאמה מינימלי:</span>
+                                <span class="info-val" id="overview-threshold">טוען...</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">מצב בדיקה (Dry-run):</span>
+                                <span class="info-val" id="overview-dryrun">טוען...</span>
+                            </div>
+                        </div>
+
+                        <div class="actions-buttons" style="margin-top: 2rem;">
+                            <button id="btn-start-agent" class="btn btn-primary btn-large">
+                                <i class="fa-solid fa-play"></i>
+                                <span>הפעל סוכן (Auto-Pilot)</span>
+                            </button>
+                            <button id="btn-stop-agent" class="btn btn-danger btn-large" disabled>
+                                <i class="fa-solid fa-stop"></i>
+                                <span>עצור סוכן</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Live Terminal Output -->
+                    <div class="terminal-card" style="position: relative;">
+                        <canvas id="matrix-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.15; pointer-events: none; border-radius: 28px;"></canvas>
+                        <div class="terminal-header" style="position: relative; z-index: 1;">
+                            <div class="terminal-dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <span class="terminal-title">מסוף פעילות סוכן בזמן אמת (Auto-Pilot Logs)</span>
+                            <button id="btn-clear-logs" class="btn-icon" title="נקה מסוף"><i class="fa-solid fa-eraser"></i></button>
+                        </div>
+                        <div class="terminal-body" id="log-console" style="position: relative; z-index: 1; overflow-y: auto; height: 100%;">
+                            <div class="log-line info">[SYSTEM] סוכן ה-Auto-Apply אותחל. הגדר הגדרות AI והפעל.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chart Card -->
+                <div class="card" style="margin-top: 1.5rem; width: 100%;">
+                    <h3>ניתוח התפלגות משרות והתאמות (Metrics Analytics)</h3>
+                    <div style="height: 180px; position: relative; margin-top: 1rem; display: flex; justify-content: center;">
+                        <canvas id="metricsChart" style="max-width: 450px;"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CV Upload View -->
+            <section id="cv-upload-view" class="view-section">
+                <div class="card card-wide">
+                    <h2>העלאת קורות חיים בסיסיים</h2>
+                    <p class="section-desc">העלה את קובץ קורות החיים שלך בפורמט PDF. הסוכן ישתמש בטקסט קורות החיים כדי לבצע סינון התאמה מול משרות חדשות ולנסח מכתבי פנייה.</p>
+                    
+                    <div class="dropzone" id="cv-dropzone">
+                        <input type="file" id="cv-file-input" accept=".pdf" style="display: none;">
+                        <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                        <h3>גרור לכאן את קובץ ה-PDF שלך</h3>
+                        <p>או לחץ לבחירת קובץ מהמחשב</p>
+                        <span class="file-limits">מגבלת נפח: עד 5MB</span>
+                    </div>
+
+                    <div id="cv-info-box" class="info-box hidden">
+                        <div class="info-icon"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="info-details">
+                            <h4 id="cv-filename">filename.pdf</h4>
+                            <p id="cv-filesize">נשמר בשרת</p>
+                        </div>
+                        <button id="btn-delete-cv" class="btn btn-danger-text"><i class="fa-solid fa-trash"></i> הסר</button>
+                    </div>
+
+                    <div class="parsed-content-container hidden" id="parsed-cv-container">
+                        <h3>תוכן קורות החיים שחולץ:</h3>
+                        <textarea id="parsed-cv-text" readonly class="form-textarea" rows="10" placeholder="הטקסט שיחולץ יופיע כאן..."></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Agent Config View -->
+            <section id="agent-config-view" class="view-section">
+                <div class="card card-wide">
+                    <h2>הגדרות סריקה ופרופיל הגשת מועמדות (Auto-Pilot)</h2>
+                    <p class="section-desc">הגדר כיצד הסוכן יסרוק משרות ואיזה פרטים הוא ימלא בטפסי המועמדות בעת הגשה אוטומטית.</p>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="gemini-key">Gemini API Key *</label>
+                            <div class="input-with-button">
+                                <input type="password" id="gemini-key" placeholder="הזן את מפתח ה-API של Gemini..." class="form-input">
+                                <button class="btn btn-outline" id="btn-toggle-key-visibility"><i class="fa-solid fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <label for="agent-keywords">מילות מפתח לסריקת משרות (מופרדות בפסיקים) *</label>
+                            <input type="text" id="agent-keywords" placeholder="Full Stack Developer, React Developer, Node.js" class="form-input">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="agent-location">מיקום משרה מבוקש *</label>
+                            <input type="text" id="agent-location" placeholder="Israel" class="form-input">
+                        </div>
+                        <div class="form-col">
+                            <label for="agent-interval">מחזוריות סריקה</label>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <input type="number" id="agent-interval" value="4" min="1" max="24" class="form-input" style="flex-grow: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 150px; cursor: pointer;">
+                                    <input type="checkbox" id="continuous-mode" checked style="width: 20px; height: 20px; cursor: pointer;">
+                                    <span style="font-size: 0.9rem; color: var(--text-main); font-weight: bold;">ריצה ללא הפסקה</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="match-threshold">ציון התאמה מינימלי להגשה (0 - 100) *</label>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <input type="range" id="match-threshold" min="50" max="95" value="75" style="flex-grow: 1;">
+                                <span id="threshold-val" style="font-weight: bold; font-size: 1.1rem; min-width: 40px;">75%</span>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <label for="dry-run-mode">מצב בדיקה בלבד (Dry-run mode)</label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                                <input type="checkbox" id="dry-run-mode" checked style="width: 20px; height: 20px; cursor: pointer;">
+                                <span style="font-size: 0.9rem; color: var(--text-muted);">מלא טפסים, שמור צילומי מסך בתיקייה ואל תבצע הגשה בפועל (מומלץ להתחלה!)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">פרטי מועמדות למילוי טפסים אוטומטי (Playwright Autofill)</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="candidate-phone">מספר טלפון ליצירת קשר</label>
+                            <input type="text" id="candidate-phone" placeholder="050-1234567" class="form-input">
+                        </div>
+                        <div class="form-col">
+                            <label for="candidate-linkedin">פרופיל LinkedIn (קישור מלא)</label>
+                            <input type="url" id="candidate-linkedin" placeholder="https://linkedin.com/in/yourprofile" class="form-input">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="btn-save-agent-config" style="margin-top: 1.5rem;">שמור הגדרות סוכן</button>
+                </div>
+            </section>
+
+            <!-- SMTP Config View -->
+            <section id="smtp-config-view" class="view-section">
+                <div class="card card-wide">
+                    <h2>הגדרות שליחת אימייל ומזהה מועמד</h2>
+                    <p class="section-desc">הגדר את פרטי השליחה. במידה וסוכן הסריקה ימצא משרה המזמינה הגשת מועמדות במייל, הוא ישלח אימייל מותאם אישית ישירות מתיבת הדואר שלך.</p>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="sender-name">שם מלא (יוצג כשם השולח בטפסים ובמיילים)</label>
+                            <input type="text" id="sender-name" placeholder="ישראל ישראלי" class="form-input">
+                        </div>
+                        <div class="form-col">
+                            <label for="smtp-host">שרת SMTP (Host)</label>
+                            <input type="text" id="smtp-host" placeholder="smtp.gmail.com" class="form-input">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="smtp-port">פורט SMTP (Port)</label>
+                            <input type="number" id="smtp-port" placeholder="465" class="form-input">
+                        </div>
+                        <div class="form-col">
+                            <label for="smtp-secure">שיטת אבטחה</label>
+                            <select id="smtp-secure" class="form-select">
+                                <option value="true">SSL (פורט 465)</option>
+                                <option value="false">TLS / ללא אבטחה (פורט 587)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="smtp-user">אימייל השולח (Username) *</label>
+                            <input type="email" id="smtp-user" placeholder="your-email@gmail.com" class="form-input">
+                        </div>
+                        <div class="form-col">
+                            <label for="smtp-pass">סיסמת SMTP (או App Password של Gmail) *</label>
+                            <input type="password" id="smtp-pass" placeholder="סיסמת אפליקציה מאובטחת" class="form-input">
+                        </div>
+                    </div>
+
+                    <div class="smtp-testing-box">
+                        <h3>בדיקת חיבור דואר</h3>
+                        <p>שלח מייל בדיקה לכתובת שלך כדי לוודא ששרת ה-SMTP מוגדר בהצלחה.</p>
+                        <div class="input-with-button">
+                            <input type="email" id="test-email-target" placeholder="test@example.com" class="form-input">
+                            <button class="btn btn-secondary" id="btn-test-smtp">שלח מייל בדיקה</button>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="btn-save-smtp-config">שמור הגדרות דואר</button>
+                </div>
+            </section>
+
+            <!-- History View -->
+            <section id="history-view" class="view-section">
+                <div class="card card-wide">
+                    <h2>היסטוריית סריקות והגשת מועמדות אוטומטית</h2>
+                    <p class="section-desc">כאן מוצגות כל המשרות שנסרקו על ידי הסוכן. תוכל לעקוב אחר ציוני ההתאמה שנקבעו ולראות צילומי מסך של טפסים שמולאו בהצלחה.</p>
+                    
+                    <div class="history-actions" style="margin-bottom: 1.5rem; display: flex; justify-content: flex-end;">
+                        <button class="btn btn-danger" id="btn-clear-history">
+                            <i class="fa-solid fa-trash-can"></i> נקה היסטוריית לוגים
+                        </button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="recipients-table">
+                            <thead>
+                                <tr>
+                                    <th>זמן סריקה</th>
+                                    <th>משרה / חברה</th>
+                                    <th>ציון התאמה</th>
+                                    <th>הסבר AI</th>
+                                    <th>שיטה</th>
+                                    <th>סטטוס הגשה</th>
+                                    <th>פרטים / הוכחה</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-list">
+                                <tr class="empty-row">
+                                    <td colspan="7">לא נמצאה היסטוריית פעילות. הפעל את הסוכן בלשונית הבקרה.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

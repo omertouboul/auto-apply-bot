@@ -1,0 +1,10 @@
+node_modules/
+.env
+saved_cv.json
+history.json
+public/screenshots/
+.git/
+config.json
+deploy_github.js
+deploy_render.js
+push_fixed.js
