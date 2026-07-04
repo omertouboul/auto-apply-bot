@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupConfigHandlers();
     setupAgentControllers();
     setupThresholdSlider();
+    setupTagsInput();
 });
 
 // Fetch configuration and logs from Express backend
@@ -66,7 +67,8 @@ function populateInputs() {
     
     // Agent Configs
     document.getElementById('gemini-key').value = s.geminiKey || '';
-    document.getElementById('agent-keywords').value = s.keywords ? s.keywords.join(', ') : '';
+    document.getElementById('agent-keywords').value = s.keywords ? s.keywords.join(',') : '';
+    if (typeof renderTags === 'function') renderTags();
     document.getElementById('agent-location').value = s.location || 'Israel';
     document.getElementById('agent-interval').value = s.intervalHours || 4;
     document.getElementById('match-threshold').value = s.matchThreshold || 75;
@@ -731,3 +733,55 @@ function initMatrixEffect() {
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initMatrixEffect, 500);
 });
+
+// Tags Input UI Logic
+function setupTagsInput() {
+    const inputField = document.getElementById('tag-input');
+    if (!inputField) return;
+    
+    inputField.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const val = inputField.value.trim();
+            if (val) {
+                addTag(val);
+                inputField.value = '';
+            }
+        }
+    });
+}
+
+function renderTags() {
+    const container = document.getElementById('tags-container');
+    const hiddenInput = document.getElementById('agent-keywords');
+    if (!container || !hiddenInput) return;
+    container.innerHTML = '';
+    
+    const currentTags = hiddenInput.value.split(',').map(t => t.trim()).filter(Boolean);
+    currentTags.forEach(tag => {
+        const tagEl = document.createElement('div');
+        tagEl.className = 'tag';
+        tagEl.innerHTML = `<span>${tag}</span><i class="fa-solid fa-xmark tag-remove" onclick="removeTag('${tag.replace(/'/g, "\\'")}')"></i>`;
+        container.appendChild(tagEl);
+    });
+}
+
+function addTag(tag) {
+    const hiddenInput = document.getElementById('agent-keywords');
+    if (!hiddenInput) return;
+    let currentTags = hiddenInput.value.split(',').map(t => t.trim()).filter(Boolean);
+    if (!currentTags.includes(tag)) {
+        currentTags.push(tag);
+        hiddenInput.value = currentTags.join(',');
+        renderTags();
+    }
+}
+
+window.removeTag = function(tagToRemove) {
+    const hiddenInput = document.getElementById('agent-keywords');
+    if (!hiddenInput) return;
+    let currentTags = hiddenInput.value.split(',').map(t => t.trim()).filter(Boolean);
+    currentTags = currentTags.filter(t => t !== tagToRemove);
+    hiddenInput.value = currentTags.join(',');
+    renderTags();
+};

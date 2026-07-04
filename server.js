@@ -280,35 +280,48 @@ async function searchJobs(keyword, location) {
     // If location is Global, we don't restrict by location string
     const locQuery = location === 'Global' ? '' : `"${location}"`;
     const query = `"${keyword}" jobs ${locQuery} (site:lever.co OR site:greenhouse.io) -United Arab Emirates -UAE -Dubai -Saudi Arabia -Qatar -Bahrain -Kuwait -Oman -Egypt -Jordan -Lebanon -Iraq -Iran -Syria -Yemen -Morocco -Algeria -Tunisia -Libya -Sudan -Pakistan -Afghanistan -Malaysia -Indonesia`.trim();
-    const url = `https://search.yahoo.com/search?p=${encodeURIComponent(query)}`;
+    
+    let allUrls = [];
     
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
+        // Fetch up to 5 pages of Yahoo search results
+        for (let page = 0; page < 5; page++) {
+            const b = page * 10 + 1; // Yahoo pagination parameter: b=1, b=11, b=21...
+            const url = `https://search.yahoo.com/search?p=${encodeURIComponent(query)}&b=${b}`;
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); 
 
-        const res = await fetch(url, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36' },
-            signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        const html = await res.text();
+            const res = await fetch(url, {
+                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.0.0 Safari/537.36' },
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            const html = await res.text();
+            
+            // Yahoo redirect pattern: RU=http...
+            const matches = [...html.matchAll(/RU=([^/&"']+)/g)];
+            const urls = matches.map(m => decodeURIComponent(m[1])).filter(u => {
+                const low = u.toLowerCase();
+                return u.startsWith('http') && 
+                       !low.includes('yahoo.com') && 
+                       !low.includes('yimg.com') && 
+                       !low.includes('flickr.com') &&
+                       !low.includes('help.yahoo.com') &&
+                       (low.includes('lever.co') || low.includes('greenhouse.io') || low.includes('careers'));
+            });
+            
+            allUrls.push(...urls);
+            
+            // Small delay to prevent rate-limiting by Yahoo
+            await new Promise(r => setTimeout(r, 1500));
+        }
         
-        // Yahoo redirect pattern: RU=http...
-        const matches = [...html.matchAll(/RU=([^/&"']+)/g)];
-        const urls = matches.map(m => decodeURIComponent(m[1])).filter(u => {
-            const low = u.toLowerCase();
-            return u.startsWith('http') && 
-                   !low.includes('yahoo.com') && 
-                   !low.includes('yimg.com') && 
-                   !low.includes('flickr.com') &&
-                   !low.includes('help.yahoo.com') &&
-                   (low.includes('lever.co') || low.includes('greenhouse.io') || low.includes('careers'));
-        });
-        
-        return [...new Set(urls)].slice(0, 12); // Return unique top 12 URLs
+        // Return unique URLs, cap at 100 per keyword to maintain quality
+        return [...new Set(allUrls)].slice(0, 100);
     } catch (e) {
         console.error("Yahoo search error:", e.message);
-        return [];
+        return [...new Set(allUrls)]; // Return whatever we gathered before error
     }
 }
 
@@ -600,7 +613,9 @@ async function playwrightSubmitForm(url, settings, cvBuffer, cvFilename, evalRes
     const page = await browser.newPage();
     
     try {
-        await page.goto(url, { waitUntil: 'networkidle', timeout: 25000 });
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+        // Give the page an extra second to execute client scripts safely
+        await page.waitForTimeout(1500);
         
         // Ensure screenshots directory exists under public
         const screenshotsDir = path.join(__dirname, 'public', 'screenshots');

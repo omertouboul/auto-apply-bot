@@ -204,8 +204,12 @@
                             </div>
                         </div>
                         <div class="form-col">
-                            <label for="agent-keywords">מילות מפתח לסריקת משרות (מופרדות בפסיקים) *</label>
-                            <input type="text" id="agent-keywords" placeholder="Full Stack Developer, React Developer, Node.js" class="form-input">
+                            <label>מילות מפתח לסריקת משרות (הקלד ולחץ Enter) *</label>
+                            <div class="tags-input-container">
+                                <div id="tags-container" class="tags-container"></div>
+                                <input type="text" id="tag-input" placeholder="הקלד ולחץ Enter..." class="tag-input-field">
+                            </div>
+                            <input type="hidden" id="agent-keywords">
                         </div>
                     </div>
 
