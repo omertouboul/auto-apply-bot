@@ -330,7 +330,7 @@ function setupConfigHandlers() {
             smtpPort: parseInt(document.getElementById('smtp-port').value, 10) || 465,
             smtpSecure: document.getElementById('smtp-secure').value,
             smtpUser: document.getElementById('smtp-user').value.trim(),
-            smtpPass: document.getElementById('smtp-pass').value.trim()
+            smtpPass: document.getElementById('smtp-pass').value.replace(/\s+/g, '')
         };
 
         try {
@@ -361,7 +361,7 @@ function setupConfigHandlers() {
             port: parseInt(document.getElementById('smtp-port').value, 10) || 465,
             secure: document.getElementById('smtp-secure').value,
             user: document.getElementById('smtp-user').value.trim(),
-            pass: document.getElementById('smtp-pass').value.trim()
+            pass: document.getElementById('smtp-pass').value.replace(/\s+/g, '')
         };
 
         if (!targetEmail || !testSmtp.host || !testSmtp.user || !testSmtp.pass) {
